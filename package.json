@@ -22,6 +22,10 @@
     "mongoose": "^7.5.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hmurani1212/imdadi_websire.git"
   }
 }
 
