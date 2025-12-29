@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Pakistan tiktok Edit</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo::before {
+            content: "🇵🇰";
+            margin-right: 0.5rem;
+            font-size: 2rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-menu li a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-menu li a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #667eea;
+            transition: width 0.3s ease;
+        }
+
+        .nav-menu li a:hover,
+        .nav-menu li a.active {
+            color: #667eea;
+        }
+
+        .nav-menu li a:hover::after,
+        .nav-menu li a.active::after {
+            width: 100%;
+        }
+
+        /* Main Container */
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        /* Locations List */
+        .locations-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .panel-header h2 {
+            color: #667eea;
+            font-size: 1.8rem;
+        }
+
+        .location-count {
+            background: #667eea;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .location-item {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .location-item:hover {
+            border-color: #667eea;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .location-item.active {
+            border-color: #667eea;
+            background: #e8eaf6;
+        }
+
+        .location-coords {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .coord {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .coord strong {
+            color: #667eea;
+        }
+
+        .location-time {
+            font-size: 0.85rem;
+            color: #999;
+            margin-bottom: 0.5rem;
+        }
+
+        .location-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-google-maps {
+            background: #4285F4;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-google-maps:hover {
+            background: #357ae8;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(66, 133, 244, 0.3);
+        }
+
+        .btn-directions {
+            background: #34A853;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-directions:hover {
+            background: #2d8f47;
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(52, 168, 83, 0.3);
+        }
+
+        .no-locations {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+
+        /* Map Panel */
+        .map-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            height: 80vh;
+        }
+
+        .map-header {
+            margin-bottom: 1rem;
+        }
+
+        .map-header h2 {
+            color: #667eea;
+            font-size: 1.8rem;
+        }
+
+        #map {
+            width: 100%;
+            height: calc(100% - 60px);
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        .error-message {
+            background: #f44336;
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+
+            .map-panel {
+                height: 60vh;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-menu {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .dashboard-container {
+                padding: 0 1rem;
+            }
+
+            .locations-panel,
+            .map-panel {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">Pakistan tiktok Edit</a>
+            <ul class="nav-menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact Us</a></li>
+                <li><a href="/dashboard.html" class="active">Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+        <!-- Locations List Panel -->
+        <div class="locations-panel">
+            <div class="panel-header">
+                <h2>List Locations</h2>
+                <span class="location-count" id="locationCount">0</span>
+            </div>
+            <div id="locationsList">
+                <div class="loading">Loading locations...</div>
+            </div>
+        </div>
+
+        <!-- Map Panel -->
+        <div class="map-panel">
+            <div class="map-header">
+                <h2>Location Map</h2>
+            </div>
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let currentMarker = null;
+
+        // Initialize map
+        function initMap() {
+            // Default center (Pakistan)
+            map = L.map('map').setView([30.3753, 69.3451], 6);
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Load all locations
+        async function loadLocations() {
+            try {
+                const response = await fetch('/api/locations');
+                const data = await response.json();
+
+                if (data.success) {
+                    displayLocations(data.data);
+                    updateLocationCount(data.count);
+                } else {
+                    showError('Failed to load locations');
+                }
+            } catch (error) {
+                console.error('Error loading locations:', error);
+                showError('Error loading locations. Please try again.');
+            }
+        }
+
+        // Display locations in list
+        function displayLocations(locations) {
+            const locationsList = document.getElementById('locationsList');
+
+            if (locations.length === 0) {
+                locationsList.innerHTML = '<div class="no-locations">No locations found</div>';
+                return;
+            }
+
+            locationsList.innerHTML = locations.map((location, index) => `
+                <div class="location-item" onclick="showLocationOnMap(${location.latitude}, ${location.longitude}, ${index})" data-index="${index}">
+                    <div class="location-coords">
+                        <div class="coord">
+                            <strong>Lat:</strong> ${location.latitude.toFixed(6)}
+                        </div>
+                        <div class="coord">
+                            <strong>Lng:</strong> ${location.longitude.toFixed(6)}
+                        </div>
+                    </div>
+                    <div class="location-time">
+                        ${formatDate(location.createdAt || location.timestamp)}
+                    </div>
+                    <div class="location-actions" onclick="event.stopPropagation();">
+                        <a href="https://www.google.com/maps?q=${location.latitude},${location.longitude}&hl=en&gl=pk" 
+                           target="_blank" 
+                           class="btn-google-maps"
+                           title="Open in Google Maps">
+                            📍 View on Google Maps
+                        </a>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${location.latitude},${location.longitude}&hl=en&gl=pk" 
+                           target="_blank" 
+                           class="btn-directions"
+                           title="Get Directions to this location">
+                            🧭 Get Directions
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+
+            // Add markers to map
+            addMarkersToMap(locations);
+        }
+
+        // Add markers to map
+        function addMarkersToMap(locations) {
+            // Clear existing markers
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            // Add new markers
+            locations.forEach((location, index) => {
+                const marker = L.marker([location.latitude, location.longitude], {
+                    opacity: 0.7
+                })
+                    .addTo(map)
+                    .bindPopup(`
+                        <strong>Location ${index + 1}</strong><br>
+                        Lat: ${location.latitude.toFixed(6)}<br>
+                        Lng: ${location.longitude.toFixed(6)}<br>
+                        ${formatDate(location.createdAt || location.timestamp)}
+                    `);
+
+                markers.push(marker);
+            });
+
+            // Fit map to show all markers
+            if (locations.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        // Show location on map when clicked
+        function showLocationOnMap(lat, lng, index) {
+            // Remove active class from all items
+            document.querySelectorAll('.location-item').forEach(item => {
+                item.classList.remove('active');
+            });
+
+            // Add active class to clicked item
+            const clickedItem = document.querySelector(`[data-index="${index}"]`);
+            if (clickedItem) {
+                clickedItem.classList.add('active');
+            }
+
+            // Highlight marker
+            if (currentMarker) {
+                currentMarker.setOpacity(0.7);
+            }
+
+            // Focus on selected location
+            map.setView([lat, lng], 13);
+
+            // Highlight the marker
+            if (markers[index]) {
+                markers[index].setOpacity(1);
+                markers[index].setZIndexOffset(1000);
+                markers[index].openPopup();
+                currentMarker = markers[index];
+            }
+        }
+
+        // Update location count
+        function updateLocationCount(count) {
+            document.getElementById('locationCount').textContent = count;
+        }
+
+        // Show error message
+        function showError(message) {
+            const locationsList = document.getElementById('locationsList');
+            locationsList.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            loadLocations();
+
+            // Refresh locations every 30 seconds
+            setInterval(loadLocations, 30000);
+        });
+    </script>
+</body>
+</html>
+
