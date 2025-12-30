@@ -423,7 +423,7 @@
                 </div>
                 <div class="form-group">
                     <label for="phoneNumber">Phone Number *</label>
-                    <input type="tel" id="phoneNumber" name="phoneNumber" required placeholder="Enter your phone number" pattern="[0-9]{10,15}">
+                    <input type="tel" id="phoneNumber" name="phoneNumber" required placeholder="03XXXXXXXXX (11 digits)" pattern="^(03|92|\+92)[0-9]{9,10}$">
                 </div>
                 <div class="form-group">
                     <label for="address">Address *</label>
@@ -536,6 +536,25 @@
             }
         }
 
+        // Validate Pakistani phone number
+        function validatePakistaniPhone(phoneNumber) {
+            // Remove spaces, dashes, and other characters
+            const cleaned = phoneNumber.replace(/[\s\-\(\)]/g, '');
+            
+            // Pakistani phone number patterns:
+            // 1. 03XXXXXXXXX (11 digits starting with 03) - most common
+            // 2. +923XXXXXXXXX (13 characters with +92)
+            // 3. 923XXXXXXXXX (12 digits starting with 92)
+            
+            const patterns = [
+                /^03[0-9]{9}$/,           // 03XXXXXXXXX (11 digits)
+                /^\+923[0-9]{9}$/,        // +923XXXXXXXXX (13 characters)
+                /^923[0-9]{9}$/           // 923XXXXXXXXX (12 digits)
+            ];
+            
+            return patterns.some(pattern => pattern.test(cleaned));
+        }
+
         // Submit form
         async function submitForm(event) {
             event.preventDefault();
@@ -545,6 +564,16 @@
             const submitLoader = document.getElementById('submitLoader');
             const errorMessage = document.getElementById('errorMessage');
             const successMessage = document.getElementById('successMessage');
+
+            // Get form data
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            
+            // Validate Pakistani phone number
+            if (!validatePakistaniPhone(phoneNumber)) {
+                alert('Please enter a valid Pakistani phone number.\n\nValid formats:\n• 03XXXXXXXXX (11 digits, e.g., 03001234567)\n• +923XXXXXXXXX (with country code)\n• 923XXXXXXXXX (without +)');
+                document.getElementById('phoneNumber').focus();
+                return;
+            }
 
             // Disable submit button and show loading
             submitBtn.disabled = true;
@@ -557,7 +586,7 @@
                 name: document.getElementById('name').value.trim(),
                 father: document.getElementById('father').value.trim(),
                 gender: document.getElementById('gender').value,
-                phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                phoneNumber: phoneNumber,
                 address: document.getElementById('address').value.trim(),
                 latitude: userLocation ? userLocation.latitude : null,
                 longitude: userLocation ? userLocation.longitude : null

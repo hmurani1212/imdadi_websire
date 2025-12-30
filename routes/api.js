@@ -112,6 +112,25 @@ router.get('/api/locations', async (req, res) => {
     }
 });
 
+// Validate Pakistani phone number
+const validatePakistaniPhone = (phoneNumber) => {
+    // Remove spaces, dashes, and other characters
+    const cleaned = phoneNumber.replace(/[\s\-\(\)]/g, '');
+    
+    // Pakistani phone number patterns:
+    // 1. 03XXXXXXXXX (11 digits starting with 03) - most common
+    // 2. +923XXXXXXXXX (13 characters with +92)
+    // 3. 923XXXXXXXXX (12 digits starting with 92)
+    
+    const patterns = [
+        /^03[0-9]{9}$/,           // 03XXXXXXXXX (11 digits)
+        /^\+923[0-9]{9}$/,        // +923XXXXXXXXX (13 characters)
+        /^923[0-9]{9}$/           // 923XXXXXXXXX (12 digits)
+    ];
+    
+    return patterns.some(pattern => pattern.test(cleaned));
+};
+
 // Submit user information form
 router.post('/api/submit-information', async (req, res) => {
     try {
@@ -122,6 +141,14 @@ router.post('/api/submit-information', async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: 'All fields are required'
+            });
+        }
+
+        // Validate Pakistani phone number
+        if (!validatePakistaniPhone(phoneNumber)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please enter a valid Pakistani phone number (e.g., 03001234567)'
             });
         }
 
